@@ -1,0 +1,23 @@
+# File di sistema macOS
+.DS_Store
+
+# Ambiente virtuale
+.venv/
+
+# Cartelle da ignorare
+original_template/
+project_code_old/
+
+# File temporanei di Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Cartelle di build
+dist/
+build/
+*.spec
+
+# Cartelle VSCode (opzionale)
+.vscode/
