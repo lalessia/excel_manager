@@ -7,12 +7,14 @@ COLUMNS_TO_KEEP = [
     "Numero",
     "Check in",
     "Check-out",
+    "Notti", 
+    "Ospiti",
     "Canale",
     "Addebiti",
-    "Addebito soggiorno",
-    "Addebito tassa di soggiorno",
-    "Altri addebiti",
-    "Da pagare"
+    #"Addebito soggiorno",
+    #"Addebito tassa di soggiorno",
+    "Altri addebiti"#,
+    #"Da pagare"
 ]
 
 def load_xlsx_from_folder(folder_path):
@@ -34,3 +36,21 @@ def load_xlsx_from_folder(folder_path):
 
     df_filtered = df[COLUMNS_TO_KEEP].copy()
     return df_filtered
+
+def extract_clean_data(df_full):
+    """
+    Estrae e pulisce le informazioni necessarie dal DataFrame originale.
+    Ritorna un nuovo DataFrame pronto per l'elaborazione.
+    """
+    colonne_da_tenere = [
+        "ID", "Numero", "Check in", "Check-out", "Notti", "Ospiti", "Canale", "Addebiti", "Altri addebiti"
+    ]
+    
+    print(df_full.head())
+    print(df_full.info())
+
+    df_cleaned = df_full[colonne_da_tenere].copy()
+    df_cleaned["Importo extra"] = 0.0
+    df_cleaned["Descrizione extra"] = ""
+
+    return df_cleaned
