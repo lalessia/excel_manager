@@ -1,23 +1,28 @@
-# File di sistema macOS
-.DS_Store
-
-# Ambiente virtuale
+# ❌ Ambiente virtuale
 .venv/
 
-# Cartelle da ignorare
+# ❌ File e cartelle di sistema
+.DS_Store
+.vscode/
+.idea/
+
+# ❌ Tutti i file e cartelle nascoste (tranne .gitignore stesso)
+.*
+!.gitignore
+
+# ❌ Backup vecchi
 original_template/
 project_code_old/
 
-# File temporanei di Python
+# ❌ Cache Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Cartelle di build
-dist/
+# ❌ Build eseguibili
 build/
+dist/
 *.spec
 
-# Cartelle VSCode (opzionale)
-.vscode/
+main_folder/
