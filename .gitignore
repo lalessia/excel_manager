@@ -13,6 +13,7 @@
 # ❌ Backup vecchi
 original_template/
 project_code_old/
+appunti/
 
 # ❌ Cache Python
 __pycache__/
