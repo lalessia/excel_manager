@@ -34,13 +34,16 @@ def show_elabora_excel_window():
             #df = load_xlsx_from_folder(folder)
             #print(df)
             #show_dataframe_table(df, folder)
+            print(f'DEBUG: folder {folder}')
             df_full = load_xlsx_from_folder(folder)
+            print(f'DEBUG: folder {df_full}')
             df_ridotto = extract_clean_data(df_full)
 
             # GUI per inserimento extra
             show_extras_editor(df_ridotto, on_done_callback=mostra_riepilogo)
         except Exception as e:
             messagebox.showerror("Errore", f"Errore durante l'elaborazione:\n{e}")
+            return
             
     def mostra_riepilogo(df_finale):
         # Qui mostriamo il dataframe finale

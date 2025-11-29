@@ -11,21 +11,20 @@ COLUMNS_TO_KEEP = [
     "Ospiti",
     "Canale",
     "Addebiti",
-    #"Addebito soggiorno",
-    #"Addebito tassa di soggiorno",
-    "Altri addebiti"#,
-    #"Da pagare"
+    "Altri addebiti"
 ]
 
 def load_xlsx_from_folder(folder_path):
     folder = Path(folder_path)
+    print(f"[DEBUG] Cerco file .xlsx in: {folder.resolve()}")
     xlsx_files = list(folder.glob("*.xlsx"))
-
+    
     if not xlsx_files:
         raise FileNotFoundError("Nessun file .xlsx trovato nella cartella selezionata.")
 
     file_path = xlsx_files[0]
-    print(f"Caricamento file: {file_path.name}")
+
+    print(f"[DEBUG] Caricamento file: {file_path.name}")
 
     df = pd.read_excel(file_path)
 
@@ -45,12 +44,10 @@ def extract_clean_data(df_full):
     colonne_da_tenere = [
         "ID", "Numero", "Check in", "Check-out", "Notti", "Ospiti", "Canale", "Addebiti", "Altri addebiti"
     ]
-    
-    print(df_full.head())
-    print(df_full.info())
 
     df_cleaned = df_full[colonne_da_tenere].copy()
     df_cleaned["Importo extra"] = 0.0
     df_cleaned["Descrizione extra"] = ""
 
+    print(f"df_cleaned: {df_cleaned}")
     return df_cleaned
