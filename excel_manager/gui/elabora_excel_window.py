@@ -6,13 +6,15 @@ from core.data_loader import load_xlsx_from_folder, extract_clean_data
 from gui.extras_editor import show_extras_editor
 from gui.home_window import restore_home
 
-def show_elabora_excel_window():
-    window = tk.Toplevel()
+def show_elabora_excel_window(parent):
+    window = tk.Toplevel(parent)
+    parent.withdraw()
+
     window.title("Elaborazione File Excel")
     window.geometry("600x400")
     window.resizable(False, False)
 
-    label = tk.Label(window, text="➤ Seleziona la cartella 'estratti_crm'", font=("Helvetica", 12))
+    label = tk.Label(window, text="Seleziona la cartella 'estratti_crm'", font=("Helvetica", 12))
     label.pack(pady=20)
 
     selected_path_var = tk.StringVar()
@@ -55,5 +57,11 @@ def show_elabora_excel_window():
 
     # Pulsante per chiudere
     # tk.Button(window, text="❌ Chiudi", command=window.destroy).pack(pady=10)
-    tk.Button(window, text="🏠 Torna alla Home", width=25, command=lambda: (window.destroy(), restore_home())).pack(pady=10)
-
+    
+    # Quando chiudi la finestra → torna la Home
+    window.protocol("WM_DELETE_WINDOW", lambda: (window.destroy(), parent.deiconify()))
+    tk.Button(
+        window, 
+        text="🏠 Torna alla Home", 
+        width=25, 
+        command=lambda: (window.destroy(), restore_home(parent))).pack(pady=10)

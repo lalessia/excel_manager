@@ -9,9 +9,8 @@ import sys
 
 global_root = None
 
-def restore_home():
-    global_root.destroy()
-    sys.exit()
+def restore_home(root):
+    root.deiconify()
     '''
     alternativa: 
     global global_root
@@ -30,9 +29,11 @@ def on_closing():
 def show_home(on_elabora_callback, on_pdf_callback):
     global global_root
     global_root = tk.Tk()
+    
     global_root.title("Mati Excel Manager – Home")
     global_root.geometry("500x350")
     global_root.resizable(False, False)
+    
     # ✅ Chiude correttamente tutto alla "X"
     global_root.protocol("WM_DELETE_WINDOW", on_closing)
     # -------- Menù --------
@@ -69,15 +70,20 @@ def show_home(on_elabora_callback, on_pdf_callback):
     description.pack(pady=10)
 
     # -------- Bottone Elaborazione --------
+    def open_elaborazione():
+        on_elabora_callback(global_root)
+        global_root.withdraw()
+        
     elabora_button = tk.Button(
         global_root,
-        text="➤ Elaborazione file Excel",
+        text="Elaborazione file Excel",
         font=("Helvetica", 12),
         width=30,
         height=2,
-        command=lambda: (global_root.withdraw(), on_elabora_callback())
+        # command=lambda: (global_root.withdraw(), on_elabora_callback())
+        command=open_elaborazione
     )
-    elabora_button.pack(pady=30)
+    elabora_button.pack()
     
     # Bottone 2 – Esportazione PDF
     btn_pdf = tk.Button(
