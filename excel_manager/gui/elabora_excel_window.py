@@ -12,7 +12,7 @@ def show_elabora_excel_window():
     window.geometry("600x400")
     window.resizable(False, False)
 
-    label = tk.Label(window, text="➤ Seleziona la cartella 'estratti_crm'", font=("Helvetica", 12))
+    label = tk.Label(window, text="Seleziona la cartella 'estratti_crm'", font=("Helvetica", 12))
     label.pack(pady=20)
 
     selected_path_var = tk.StringVar()

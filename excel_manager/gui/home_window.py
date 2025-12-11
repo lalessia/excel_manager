@@ -17,6 +17,10 @@ def restore_home():
     global global_root
     global_root.deiconify()
     '''
+def restore_home():
+    global_root.deiconify()
+    global_root.focus_force()
+
     
 def on_closing():
     """
@@ -71,7 +75,7 @@ def show_home(on_elabora_callback, on_pdf_callback):
     # -------- Bottone Elaborazione --------
     elabora_button = tk.Button(
         global_root,
-        text="➤ Elaborazione file Excel",
+        text="Elaborazione file Excel",
         font=("Helvetica", 12),
         width=30,
         height=2,
