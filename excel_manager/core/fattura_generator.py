@@ -1,44 +1,60 @@
-from fpdf import FPDF
 import os
+from fpdf import FPDF
 
-def genera_pdf_fattura(dati: dict, output_path: str):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
+class FatturaPDF(FPDF):
+    def header(self):
+        # --- LOGO ---
 
-    # 👇 Aggiungo un font UTF-8
-    font_path = os.path.join(os.path.dirname(__file__), "fonts", "DejaVuSans.ttf")
-    pdf.add_font("DejaVu", "", font_path, uni=True)
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "img", "logo.png")
 
-    pdf.set_font("DejaVu", "", 18)
-    pdf.cell(0, 10, "Fattura Prenotazione", ln=True, align="C")
+        print('logo_path: ', logo_path)
 
-    pdf.ln(10)
+        if os.path.exists(logo_path):
+            self.image(logo_path, x=10, y=30, w=400)
+        else:
+            self.set_font("Arial", "", 12)
+            self.text(10, 15, "[Logo mancante]")
 
-    pdf.set_font("DejaVu", "", 12)
-    pdf.cell(0, 10, "Dati soggiorno:", ln=True)
+        # Spazio sotto il logo
+        self.ln(20)
 
-    pdf.cell(0, 8, f"Check-in: {dati['check_in']}", ln=True)
-    pdf.cell(0, 8, f"Check-out: {dati['check_out']}", ln=True)
-    pdf.cell(0, 8, f"Notti: {dati['notti']}", ln=True)
+    def footer(self):
+        # Numero pagina
+        self.set_y(-15)
+        self.set_font("Arial", "", 9)
+        self.set_text_color(120)
+        self.cell(0, 10, f"Pagina {self.page_no()}", align="C")
 
-    pdf.ln(5)
 
-    pdf.set_font("DejaVu", "", 12)
-    pdf.cell(0, 10, "Importi:", ln=True)
+def genera_pdf_fattura(header: dict, detail: list, output_path: str):
+    print("Creazione PDF minimal...")
 
-    # 👇 Il simbolo € ora funziona perché la font è unicode
-    pdf.cell(0, 8, f"Importo ricevuto: € {dati['importo_ricevuto']}", ln=True)
+    # Percorso font
+    # font_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts", "DejaVuSerif.ttf")
 
-    pdf.ln(10)
-
-    pdf.set_font("DejaVu", "", 11)
-    pdf.set_text_color(100)
-    pdf.multi_cell(
-        0, 7,
-        "Sezione costi aggiuntivi (Servizio, Extra, Pulizie, Tassa, Affitto, Ritenuta) "
-        "verrà aggiunta nelle prossime versioni."
+    font_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "fonts",
+        "DejaVuSerif.ttf"
     )
-    pdf.set_text_color(0)
 
+    pdf = FatturaPDF()
+    pdf.add_page()
+
+    # Uso font unicode solo se esiste
+    if os.path.exists(font_path):
+        pdf.add_font("DejaVu", "", font_path, uni=True)
+        pdf.set_font("DejaVu", "", 14)
+        print('Il font settato è DejaVuSans.ttf')
+    else:
+        pdf.set_font("Arial", "", 14)
+        print('Il font settato è Arial')
+
+    # --- CONTENUTO MINIMALE ---
+    pdf.cell(0, 10, f"Fattura n. {header.get('numero', '')}", ln=True)
+    pdf.cell(0, 10, f"Data: {header.get('data', '')}", ln=True)
+
+    # --- SALVA PDF ---
     pdf.output(output_path)
+
+    print(f"PDF creato: {output_path}")

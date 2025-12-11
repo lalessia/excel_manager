@@ -38,15 +38,31 @@ def show_pdf_export_window():
             return
 
         try:
+            header = {
+                'numero': '001',
+                'data': '01/02/2025',
+                'cliente': 'Mario Rossi',
+                'indirizzo': 'Via Roma 10, Milano',
+                'cf_piva': 'RSSMRA80A01F205X',
+                'tot_affitto': 290,
+                'tot_ritenuta': 29
+            }
+
             # 👉 Estraggo i dati da Excel
-            dati = estrai_dati_fattura(file_path)
+            detail = estrai_dati_fattura(file_path)
 
             # --- CREAZIONE PERCORSO PDF ---
             folder = os.path.dirname(file_path)
             pdf_path = os.path.join(folder, "fattura_prenotazione.pdf")
 
             # 👉 Genero la fattura PDF
-            genera_pdf_fattura(dati, pdf_path)
+            print('header: ', header)
+            print('type - header: ', type(header))
+            print('detail: ', detail)
+            print('type - detail: ', type(detail))
+            print('pdf_path: ', pdf_path)
+            print('type - pdf_path: ', type(pdf_path))
+            genera_pdf_fattura(header, detail, pdf_path)
 
             messagebox.showinfo(
                 "Fattura generata",

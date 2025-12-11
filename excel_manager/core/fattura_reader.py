@@ -7,16 +7,8 @@ def estrai_dati_fattura(file_path: str) -> dict:
     print("DEBUG file_path: ", file_path)
     df = pd.read_excel(file_path)
     
-    # Estrai i dati della prima (o unica) prenotazione
-  
-    dati = {
-        "check_in": df.loc[0, "Check in"],
-        "check_out": df.loc[0, "Check-out"],
-        "notti": df.loc[0, "Notti"],
-        "importo_ricevuto": df.loc[0, "Addebiti"],
-    }
-
-    return dati
+    detail = df.values.tolist()
+    return detail
 
 
 '''
