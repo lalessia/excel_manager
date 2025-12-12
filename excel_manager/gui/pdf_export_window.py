@@ -4,9 +4,9 @@ from gui.home_window import restore_home
 from core.fattura_reader import estrai_dati_fattura   # 👈 IMPORTANTE
 from core.fattura_generator import genera_pdf_fattura
 import os
+from datetime import datetime
 
 def show_pdf_export_window():
-    print("DEBUG: sto usando il file AGGIORNATO di pdf_export_window")
     window = tk.Toplevel()
     window.title("Generazione Fattura")
     window.geometry("550x380")
@@ -39,13 +39,13 @@ def show_pdf_export_window():
 
         try:
             header = {
-                'numero': '001',
-                'data': '01/02/2025',
-                'cliente': 'Mario Rossi',
-                'indirizzo': 'Via Roma 10, Milano',
-                'cf_piva': 'RSSMRA80A01F205X',
-                'tot_affitto': 290,
-                'tot_ritenuta': 29
+                'data': datetime.now().strftime("%d/%m/%Y"),
+                # 'numero': '001',
+                # 'cliente': 'Mario Rossi',
+                # 'indirizzo': 'Via Roma 10, Milano',
+                # 'cf_piva': 'RSSMRA80A01F205X',
+                # 'tot_affitto': 290,
+                # 'tot_ritenuta': 29
             }
 
             # 👉 Estraggo i dati da Excel
@@ -53,15 +53,10 @@ def show_pdf_export_window():
 
             # --- CREAZIONE PERCORSO PDF ---
             folder = os.path.dirname(file_path)
-            pdf_path = os.path.join(folder, "fattura_prenotazione.pdf")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            pdf_path = os.path.join(folder, f"fattura_prenotazione_{timestamp}.pdf")
 
             # 👉 Genero la fattura PDF
-            print('header: ', header)
-            print('type - header: ', type(header))
-            print('detail: ', detail)
-            print('type - detail: ', type(detail))
-            print('pdf_path: ', pdf_path)
-            print('type - pdf_path: ', type(pdf_path))
             genera_pdf_fattura(header, detail, pdf_path)
 
             messagebox.showinfo(

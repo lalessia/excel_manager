@@ -4,12 +4,65 @@ def estrai_dati_fattura(file_path: str) -> dict:
     """
     Legge il file Excel e restituisce un dict con i dati necessari alla fattura.
     """
-    print("DEBUG file_path: ", file_path)
     df = pd.read_excel(file_path)
     
-    detail = df.values.tolist()
-    return detail
+    # Selezioni le colonne che servono dal file resoconto.xlsx
+    cols_to_keep = [
+        'Check in',
+        'Check-out',
+        'Notti',
+        'Addebiti',
+        'Importo extra',
+        'Pulizie',
+        'Tot tassa sogg'
+    ]
 
+    df_clean = df[cols_to_keep].copy()
+
+    # 🔥 Arrotondo subito a 2 decimali le colonne numeriche base
+    df_clean["Addebiti"] = df_clean["Addebiti"].round(2)
+    df_clean["Importo extra"] = df_clean["Importo extra"].round(2)
+    df_clean["Pulizie"] = (df_clean["Pulizie"] * 1.22).round(2)
+    df_clean["Tot tassa sogg"] = df_clean["Tot tassa sogg"].round(2)
+
+    # 🔥 Calcolo della colonna Servizio + arrotondamento
+    df_clean["Servizio"] = (
+        (df_clean["Addebiti"] * 0.20) +
+        (df_clean["Importo extra"] * 100 / 122)
+    ).apply(lambda x: round(x * 1.22, 2))
+
+    # 👉 Nuovo ordine colonne
+    new_order = [
+        'Check in',
+        'Check-out',
+        'Notti',
+        'Addebiti',
+        'Servizio',
+        'Importo extra',
+        'Pulizie',
+        'Tot tassa sogg'
+    ]
+
+    df_clean = df_clean[new_order]
+
+    # 👉 Conversione in lista di liste
+    detail = df_clean.values.tolist()
+
+    # 👉 Header aggiornato
+    header = [
+        'Check in',
+        'Check out',
+        'Notti',
+        'Addebiti',
+        'Servizio',
+        'Extra',
+        'Pulizie',
+        'Sogg.'
+    ]
+
+    detail.insert(0, header)
+
+    return detail
 
 '''
         "Servizio": df.loc[0, "Totale"]
