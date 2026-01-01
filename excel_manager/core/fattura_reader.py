@@ -14,16 +14,28 @@ def estrai_dati_fattura(file_path: str) -> dict:
         'Addebiti',
         'Importo extra',
         'Pulizie',
-        'Tot tassa sogg'
+        'Tot tassa sogg',
+        'Comm_netta'
     ]
 
     df_clean = df[cols_to_keep].copy()
-
+    print(df_clean.head())
+    print(df_clean.info())
+    
+    # 👉 Conversione colonne date in datetime
+    df_clean['Check in'] = pd.to_datetime(df_clean['Check in'], dayfirst=True)
+    df_clean['Check-out'] = pd.to_datetime(df_clean['Check-out'], dayfirst=True)
+    # 👉 Formattazione DD/MM/YY
+    df_clean['Check in'] = df_clean['Check in'].dt.strftime('%d/%m/%y')
+    df_clean['Check-out'] = df_clean['Check-out'].dt.strftime('%d/%m/%y')
+    
     # 🔥 Arrotondo subito a 2 decimali le colonne numeriche base
     df_clean["Addebiti"] = df_clean["Addebiti"].round(2)
     df_clean["Importo extra"] = df_clean["Importo extra"].round(2)
     df_clean["Pulizie"] = (df_clean["Pulizie"] * 1.22).round(2)
     df_clean["Tot tassa sogg"] = df_clean["Tot tassa sogg"].round(2)
+    df_clean['Affitto'] = round(df_clean['Addebiti'] - df_clean['Pulizie'] - df_clean['Comm_netta']*1.22 - df_clean['Tot tassa sogg'], 2)
+    df_clean['Ritenuta'] = round(df_clean['Affitto'] * 0.21, 2)
 
     # 🔥 Calcolo della colonna Servizio + arrotondamento
     df_clean["Servizio"] = (
@@ -40,7 +52,9 @@ def estrai_dati_fattura(file_path: str) -> dict:
         'Servizio',
         'Importo extra',
         'Pulizie',
-        'Tot tassa sogg'
+        'Tot tassa sogg',
+        'Affitto',
+        'Ritenuta'
     ]
 
     df_clean = df_clean[new_order]
@@ -50,14 +64,16 @@ def estrai_dati_fattura(file_path: str) -> dict:
 
     # 👉 Header aggiornato
     header = [
-        'Check in',
-        'Check out',
+        'CK in',
+        'CK out',
         'Notti',
         'Addebiti',
         'Servizio',
         'Extra',
         'Pulizie',
-        'Sogg.'
+        'Tax Sogg.',
+        'Affitto',
+        'Rit.'
     ]
 
     detail.insert(0, header)

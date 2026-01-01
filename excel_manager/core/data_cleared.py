@@ -5,9 +5,6 @@ class DataCleaner:
         self.df = df.copy()  # Per sicurezza, evitiamo modifiche in-place
 
     def clean(self):
-        # Per ora, restituiamo il dataframe così com'è
-        
-        print(self.df.info())
         df = self.df
 
         # 11. "Pulizie" = "Altri addebiti" / 1.22
@@ -43,20 +40,9 @@ class DataCleaner:
         # 19. "Servizio" = "Comm_netta" + "IVA comm"
         df["Servizio"] = df["Comm_netta"] + df["IVA comm"]
         df["Servizio"] = df["Servizio"].round(2)
-        
-        print('df["Addebiti"]', df["Addebiti"])
-        print('df["Pulizie"]', df["Pulizie"])
-        print('df["Iva Pulizie"]', df["Iva Pulizie"])
-        print('df["Comm_netta"]', df["Comm_netta"])
-        print('df["IVA comm"]', df["IVA comm"])
-        print('df["Tot tassa sogg"]', df["Tot tassa sogg"])
-        
-        
+               
         # 20. "Netto Affitto" = Addebiti - Pulizie - Iva Pulizie - Comm_netta - IVA comm - Tot tassa sogg
         df["Netto Affitto"] = df["Addebiti"] - df["Pulizie"] - df["Iva Pulizie"] - df["Comm_netta"] - df["IVA comm"] - df["Tot tassa sogg"]
         df["Netto Affitto"] = df["Netto Affitto"].round(2)
-        
-        # Eventuale stampa di debug:
-        print(df.info())
 
         return df

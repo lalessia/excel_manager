@@ -80,4 +80,4 @@ def show_extras_editor(df, on_done_callback):
     tk.Button(window, text="✏️ Modifica selezione", command=modifica_riga).pack(pady=10)
     tk.Button(window, text="✅ Procedi al riepilogo", command=conferma_modifiche).pack(pady=5)
     # 👇 Nuovo bottone "Torna alla home"
-    tk.Button(window, text="🏠 Torna alla home", command=window.destroy).pack(pady=5)
+    tk.Button(window, text="🏠 Torna indietro", command=window.destroy).pack(pady=5)
