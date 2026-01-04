@@ -31,12 +31,7 @@ def show_elabora_excel_window():
             messagebox.showwarning("Attenzione", "Seleziona prima una cartella.")
             return
         try:
-            #df = load_xlsx_from_folder(folder)
-            #print(df)
-            #show_dataframe_table(df, folder)
-            print(f'DEBUG: folder {folder}')
             df_full = load_xlsx_from_folder(folder)
-            print(f'DEBUG: folder {df_full}')
             df_ridotto = extract_clean_data(df_full)
 
             # GUI per inserimento extra
