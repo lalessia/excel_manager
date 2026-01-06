@@ -31,40 +31,26 @@ COLUMNS_TO_KEEP = [
 ]
 
 
-def load_xlsx_from_folder(folder_path):
+def load_xlsx(file_path):
     """
-    Carica il primo file Excel presente in una cartella.
-
-    La funzione cerca un file .xlsx all'interno della cartella indicata,
-    lo legge in un DataFrame Pandas e verifica la presenza delle colonne
-    minime richieste.
+    Carica un file Excel specifico (.xlsx).
 
     Args:
-        folder_path (str | Path): Percorso della cartella contenente
-                                  il file Excel esportato dal CRM.
+        file_path (str | Path): Percorso del file Excel.
 
     Returns:
         pandas.DataFrame: DataFrame contenente solo le colonne richieste.
-
-    Raises:
-        FileNotFoundError: Se non viene trovato alcun file .xlsx.
-        ValueError: Se il file Excel non contiene tutte le colonne attese.
     """
-    folder = Path(folder_path)
-    print(f"[DEBUG] Cerco file .xlsx in: {folder.resolve()}")
+    file_path = Path(file_path)
 
-    xlsx_files = list(folder.glob("*.xlsx"))
-    if not xlsx_files:
-        raise FileNotFoundError(
-            "Nessun file .xlsx trovato nella cartella selezionata."
-        )
+    if not file_path.exists():
+        raise FileNotFoundError("Il file selezionato non esiste.")
 
-    file_path = xlsx_files[0]
-    print(f"[DEBUG] Caricamento file: {file_path.name}")
+    if file_path.suffix != ".xlsx":
+        raise ValueError("Il file selezionato non è un file .xlsx.")
 
     df = pd.read_excel(file_path)
 
-    # Verifica presenza colonne obbligatorie
     missing_cols = [col for col in COLUMNS_TO_KEEP if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Colonne mancanti nel file: {missing_cols}")
@@ -91,8 +77,5 @@ def extract_clean_data(df_full):
     # Colonne inizializzate per input manuale successivo
     df_cleaned["Importo extra"] = 0.0
     df_cleaned["Descrizione extra"] = ""
-
-    print("[DEBUG] DataFrame inizializzato per processing")
-    print(df_cleaned.info())
 
     return df_cleaned

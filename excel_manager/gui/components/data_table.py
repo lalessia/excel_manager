@@ -4,18 +4,35 @@ Gestione della tabella e dei dettagli prima del salvataggio
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pandas as pd
+from pathlib import Path
 import os
 
 
 def show_dataframe_table(df: pd.DataFrame, save_folder: str, parent=None):
     def salva_file():
-        filepath = os.path.join(save_folder, "resoconto_mensile.xlsx")
         try:
+            base_path = Path(save_folder)
+            preprocessing_dir = base_path / "preprocessing"
+
+            # Crea la cartella se non esiste
+            preprocessing_dir.mkdir(parents=True, exist_ok=True)
+
+            filepath = preprocessing_dir / "resoconto_mensile.xlsx"
+
             df.to_excel(filepath, index=False)
-            messagebox.showinfo("Successo", f"File salvato in:\n{filepath}")
+
+            messagebox.showinfo(
+                "Successo",
+                f"File salvato in:\n{filepath}"
+            )
             table_window.destroy()
+
         except Exception as e:
-            messagebox.showerror("Errore", f"Impossibile salvare il file:\n{e}")
+            messagebox.showerror(
+                "Errore",
+                f"Impossibile salvare il file:\n{e}"
+            )
+
     
     def torna_alla_modifica():
         table_window.destroy()

@@ -71,7 +71,6 @@ def show_extras_editor(df, on_done_callback):
     '''
             
     def conferma_modifiche():
-        print("[DEBUG] Conferma modifiche cliccato")
         cleaner = DataCleaner(df)
         cleaned_df = cleaner.clean()
         on_done_callback(cleaned_df)
