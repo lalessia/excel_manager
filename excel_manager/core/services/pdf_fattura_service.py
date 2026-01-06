@@ -1,16 +1,45 @@
 import math
 import os
-from fpdf import FPDF
 import sys
+from fpdf import FPDF
 
 
-def resource_path(relative_path):
+def resource_path(relative_path: str) -> str:
+    """
+    Restituisce il percorso assoluto di una risorsa, compatibile con PyInstaller.
+
+    Durante l'esecuzione come file eseguibile, PyInstaller utilizza una directory
+    temporanea (_MEIPASS). Questa funzione garantisce il corretto accesso
+    a font, immagini e altre risorse statiche sia in sviluppo che in produzione.
+
+    Args:
+        relative_path (str): Percorso relativo della risorsa.
+
+    Returns:
+        str: Percorso assoluto della risorsa.
+    """
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
+
 class FatturaPDF(FPDF):
-    def __init__(self, data_fattura="", *args, **kwargs):
+    """
+    Estensione della classe FPDF per la generazione di fatture personalizzate.
+
+    Gestisce:
+    - caricamento dei font
+    - intestazione con logo e data
+    - piè di pagina con numerazione delle pagine
+    """
+
+    def __init__(self, data_fattura: str = "", *args, **kwargs):
+        """
+        Inizializza il documento PDF della fattura.
+
+        Args:
+            data_fattura (str): Data della fattura da visualizzare nell'intestazione.
+        """
         super().__init__(*args, **kwargs)
         self.data_fattura = data_fattura
 
@@ -25,9 +54,17 @@ class FatturaPDF(FPDF):
                 self.add_font("DejaVu", "B", font_bold, uni=True)
             self.default_font = "DejaVu"
         else:
+            # Fallback nel caso i font non siano disponibili
             self.default_font = "Arial"
 
     def header(self):
+        """
+        Disegna l'intestazione del PDF.
+
+        Include:
+        - logo aziendale (se presente)
+        - data della fattura
+        """
         self.set_font(self.default_font, size=12)
 
         logo_path = resource_path("img/logo.png")
@@ -45,14 +82,43 @@ class FatturaPDF(FPDF):
         self.ln(50)
 
     def footer(self):
+        """
+        Disegna il piè di pagina del PDF con la numerazione delle pagine.
+        """
         self.set_y(-15)
         self.set_font("Arial", "", 9)
         self.set_text_color(120)
         self.cell(0, 10, f"Pagina {self.page_no()}", align="C")
 
-def genera_pdf_fattura(header: dict, detail: list, output_path: str):
 
-    def safe_str(val):
+def genera_pdf_fattura(header: dict, detail: list, output_path: str) -> None:
+    """
+    Genera il PDF della fattura a partire dai dati forniti.
+
+    La funzione:
+    - crea il documento PDF
+    - renderizza la tabella dei dettagli
+    - calcola i totali (affitto, ritenuta, bonifico)
+    - salva il file PDF nel percorso indicato
+
+    Args:
+        header (dict): Dizionario contenente i dati di intestazione della fattura
+                       (es. data).
+        detail (list): Lista di liste contenente i dati tabellari della fattura,
+                       inclusa l'intestazione come prima riga.
+        output_path (str): Percorso di output del file PDF.
+    """
+
+    def safe_str(val) -> str:
+        """
+        Converte un valore in stringa gestendo None e NaN.
+
+        Args:
+            val: Valore da convertire.
+
+        Returns:
+            str: Valore convertito in stringa sicura.
+        """
         if val is None:
             return ""
         try:
@@ -64,23 +130,25 @@ def genera_pdf_fattura(header: dict, detail: list, output_path: str):
 
     pdf = FatturaPDF(data_fattura=header["data"])
     pdf.add_page()
-
     pdf.set_font(pdf.default_font, size=10)
 
-    TABLE_DATA = tuple(tuple(safe_str(cell) for cell in row) for row in detail)
+    # Preparazione dati tabella
+    table_data = tuple(tuple(safe_str(cell) for cell in row) for row in detail)
 
     with pdf.table() as table:
-        for data_row in TABLE_DATA:
+        for data_row in table_data:
             row = table.row()
             for datum in data_row:
                 row.cell(datum, border="TOP", align="C")
 
+    # Esclusione header per i calcoli
     righe_dati = detail[1:]
 
     tot_affitto = sum(row[8] for row in righe_dati)
     tot_ritenuta = sum(row[9] for row in righe_dati)
     tot_bonifico = round(tot_affitto - tot_ritenuta, 2)
 
+    # Sezione totali
     pdf.ln(10)
     pdf.set_font(pdf.default_font, "B", 10)
 

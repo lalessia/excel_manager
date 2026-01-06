@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from gui.data_table import show_dataframe_table
-from core.data_loader import load_xlsx_from_folder, extract_clean_data
+from gui.components.data_table import show_dataframe_table
+from core.io.excel_reader import load_xlsx_from_folder, extract_clean_data
 #from core.data_extractor import estrai_colonne_rilevanti
-from gui.extras_editor import show_extras_editor
-from gui.home_window import restore_home
+from gui.components.extras_editor import show_extras_editor
+from gui.windows.home_window import restore_home
 
 def show_elabora_excel_window():
     window = tk.Toplevel()

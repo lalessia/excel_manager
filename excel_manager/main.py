@@ -1,8 +1,6 @@
-from gui.home_window import show_home
-from gui.elabora_excel_window import show_elabora_excel_window  # nuova GUI
-from gui.pdf_export_window import show_pdf_export_window        # in futuro
-from core.data_cleared import DataCleaner
-
+from gui.windows.home_window import show_home
+from gui.windows.elabora_excel_window import show_elabora_excel_window  # nuova GUI
+from gui.windows.pdf_export_window import show_pdf_export_window        # in futuro
 
 def main():
     show_home(

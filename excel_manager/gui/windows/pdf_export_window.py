@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from gui.home_window import restore_home
-from core.fattura_reader import estrai_dati_fattura   # 👈 IMPORTANTE
-from core.fattura_generator import genera_pdf_fattura
+from gui.windows.home_window import restore_home
+from core.services.fattura_reader_service import estrai_dati_fattura   # 👈 IMPORTANTE
+from core.services.pdf_fattura_service import genera_pdf_fattura
 import os
 from datetime import datetime
 

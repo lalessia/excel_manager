@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 import pandas as pd
-from core.data_cleared import DataCleaner
+from core.processing.data_cleaner import DataCleaner
 
 
 def show_extras_editor(df, on_done_callback):

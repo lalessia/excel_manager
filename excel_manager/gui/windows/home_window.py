@@ -4,7 +4,7 @@ Classe che gestisce la home
 
 import tkinter as tk
 from tkinter import Menu, messagebox
-from gui.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
+from gui.components.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
 import sys
 
 global_root = None

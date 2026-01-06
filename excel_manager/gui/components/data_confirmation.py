@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import pandas as pd
 from pathlib import Path
-from core.data_writer import write_dataframe_to_file
+from core.io.excel_writer import write_dataframe_to_file
 
 def confirm_and_write(df_new, estratti_folder_path):
     estratti_path = Path(estratti_folder_path)
