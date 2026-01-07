@@ -21,15 +21,55 @@ def show_extras_editor(df, on_done_callback):
     scrollbar.pack(side="right", fill="y")
     tree.configure(yscrollcommand=scrollbar.set)
 
+    if "Pagamento carta" not in df.columns:
+        df["Pagamento carta"] = False
+
     cols = df.columns.tolist()
     tree["columns"] = cols
 
     for col in cols:
         tree.heading(col, text=col)
         tree.column(col, width=100, anchor="center")
-
+    
+    '''
     for _, row in df.iterrows():
         tree.insert("", "end", values=list(row))
+    '''
+
+    for _, row in df.iterrows():
+        values = list(row)
+        # sostituisco il boolean con simbolo checkbox
+        idx_pagamento = df.columns.get_loc("Pagamento carta")
+        values[idx_pagamento] = "☑" if row["Pagamento carta"] else "☐"
+        tree.insert("", "end", values=values)
+
+        def on_tree_click(event):
+            region = tree.identify("region", event.x, event.y)
+            if region != "cell":
+                return
+
+            column = tree.identify_column(event.x)
+            row_id = tree.identify_row(event.y)
+
+            col_index = int(column.replace("#", "")) - 1
+            col_name = df.columns[col_index]
+
+            if col_name != "Pagamento carta":
+                return
+
+            row_index = tree.index(row_id)
+
+            # toggle valore
+            current = df.at[row_index, "Pagamento carta"]
+            new_value = not current
+            df.at[row_index, "Pagamento carta"] = new_value
+
+            # aggiorna UI
+            values = list(df.iloc[row_index])
+            values[col_index] = "☑" if new_value else "☐"
+            tree.item(row_id, values=values)
+
+        tree.bind("<Button-1>", on_tree_click)
 
     # dizionario per modifiche extra
     modifiche_extra = {}
