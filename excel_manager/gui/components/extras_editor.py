@@ -104,11 +104,6 @@ def show_extras_editor(df, on_done_callback):
             popup.destroy()
 
         tk.Button(popup, text="Conferma", command=conferma).pack(pady=10)
-    '''
-    def conferma_modifiche():
-        on_done_callback(df)
-        window.destroy()
-    '''
             
     def conferma_modifiche():
         cleaner = DataCleaner(df)

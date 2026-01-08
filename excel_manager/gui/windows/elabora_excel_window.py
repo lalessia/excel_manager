@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from core.processing.data_cleaner import DataCleaner
 from gui.components.data_table import show_dataframe_table
 from core.io.excel_reader import load_xlsx, extract_clean_data
 #from core.data_extractor import estrai_colonne_rilevanti
@@ -43,7 +44,12 @@ def show_elabora_excel_window():
             df_full = load_xlsx(file_path)
             df_ridotto = extract_clean_data(df_full)
 
-            show_extras_editor(df_ridotto, on_done_callback=mostra_riepilogo)
+            print('df_ridotto: ', df_ridotto)
+            # 👉 PRIMA pulizia
+            cleaner = DataCleaner(df_ridotto)
+            df_preparato = cleaner.clean()
+
+            show_extras_editor(df_preparato, on_done_callback=mostra_riepilogo)
 
         except Exception as e:
             messagebox.showerror(

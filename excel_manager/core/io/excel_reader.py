@@ -26,6 +26,7 @@ COLUMNS_TO_KEEP = [
     "Ospiti",
     "Canale",
     "Addebiti",
+    "Commissioni",
     "Altri addebiti",
     "Da pagare",
 ]

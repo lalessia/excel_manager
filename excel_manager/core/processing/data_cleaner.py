@@ -39,8 +39,7 @@ class DataCleaner:
         """
         df = self.df
 
-        print(f"[DEBUG] Dataframe originale:")
-        print(df.info())
+        print('DF clean: ', df.info())
 
         # Adeguamento addebiti sottraendo l'importo già pagato
         df["Addebiti"] = df["Addebiti"] - df["Da pagare"]
@@ -52,10 +51,18 @@ class DataCleaner:
             "VRBO": 0.15
         }
 
+        df["Commissioni"] = (
+            df["Addebiti"] * df["Canale"].map(commissioni).fillna(0) * 1.22
+        ).round(2)
+
+        df["Addebiti"] = df["Addebiti"] -df["Commissioni"]
+
+        '''
         df["Addebiti"] = (
             df["Addebiti"]
             * (1 - df["Canale"].map(commissioni).fillna(0) * 1.22)
         ).round(2)
+        '''
 
         # Extra senza IVA (scorporo IVA 22%)
         df["extra_senza_iva"] = (df["Importo extra"] * 100 / 122).round(2)
