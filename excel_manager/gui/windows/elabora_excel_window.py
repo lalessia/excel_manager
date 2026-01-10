@@ -44,7 +44,6 @@ def show_elabora_excel_window():
             df_full = load_xlsx(file_path)
             df_ridotto = extract_clean_data(df_full)
 
-            print('df_ridotto: ', df_ridotto)
             # 👉 PRIMA pulizia
             cleaner = DataCleaner(df_ridotto)
             df_preparato = cleaner.clean()

@@ -39,8 +39,6 @@ class DataCleaner:
         """
         df = self.df
 
-        print('DF clean: ', df.info())
-
         # Adeguamento addebiti sottraendo l'importo già pagato
         df["Addebiti"] = df["Addebiti"] - df["Da pagare"]
 
@@ -108,8 +106,5 @@ class DataCleaner:
 
         # Ritenuta d'acconto
         df["ritenuta"] = (df["affitto"] * 0.21).round(2)
-
-        print(f"[DEBUG] Dataframe dopo pulizia:")
-        print(df.info())
 
         return df

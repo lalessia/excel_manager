@@ -1,26 +1,43 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 import pandas as pd
+
 from core.processing.data_cleaner import DataCleaner
+from core.services.extras_repository import get_all_extras
 
 
 def show_extras_editor(df, on_done_callback):
     window = tk.Toplevel()
-    window.title("Modifica Extra per Prenotazione")
+    window.title("Aggiungi Extra per Prenotazione")
     window.geometry("1000x400")
     window.resizable(True, True)
 
     frame = tk.Frame(window)
     frame.pack(fill="both", expand=True)
 
+    # ----------------------------------
+    # Treeview principale con scrollbar
+    # ----------------------------------
     tree = ttk.Treeview(frame, show="headings")
-    tree.pack(side="left", fill="both", expand=True)
+    tree.grid(row=0, column=0, sticky="nsew")
 
-    scrollbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-    scrollbar.pack(side="right", fill="y")
-    tree.configure(yscrollcommand=scrollbar.set)
+    scrollbar_y = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    scrollbar_y.grid(row=0, column=1, sticky="ns")
 
+    scrollbar_x = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+    scrollbar_x.grid(row=1, column=0, sticky="ew")
+
+    tree.configure(
+        yscrollcommand=scrollbar_y.set,
+        xscrollcommand=scrollbar_x.set
+    )
+
+    frame.grid_rowconfigure(0, weight=1)
+    frame.grid_columnconfigure(0, weight=1)
+
+    # ----------------------------------
+    # Colonna pagamento carta
+    # ----------------------------------
     if "Pagamento carta" not in df.columns:
         df["Pagamento carta"] = False
 
@@ -29,51 +46,46 @@ def show_extras_editor(df, on_done_callback):
 
     for col in cols:
         tree.heading(col, text=col)
-        tree.column(col, width=100, anchor="center")
-    
-    '''
-    for _, row in df.iterrows():
-        tree.insert("", "end", values=list(row))
-    '''
+        tree.column(col, width=120, anchor="center")
 
     for _, row in df.iterrows():
         values = list(row)
-        # sostituisco il boolean con simbolo checkbox
         idx_pagamento = df.columns.get_loc("Pagamento carta")
         values[idx_pagamento] = "☑" if row["Pagamento carta"] else "☐"
         tree.insert("", "end", values=values)
 
-        def on_tree_click(event):
-            region = tree.identify("region", event.x, event.y)
-            if region != "cell":
-                return
+    # ----------------------------------
+    # Toggle checkbox pagamento carta
+    # ----------------------------------
+    def on_tree_click(event):
+        region = tree.identify("region", event.x, event.y)
+        if region != "cell":
+            return
 
-            column = tree.identify_column(event.x)
-            row_id = tree.identify_row(event.y)
+        column = tree.identify_column(event.x)
+        row_id = tree.identify_row(event.y)
 
-            col_index = int(column.replace("#", "")) - 1
-            col_name = df.columns[col_index]
+        col_index = int(column.replace("#", "")) - 1
+        col_name = df.columns[col_index]
 
-            if col_name != "Pagamento carta":
-                return
+        if col_name != "Pagamento carta":
+            return
 
-            row_index = tree.index(row_id)
+        row_index = tree.index(row_id)
 
-            # toggle valore
-            current = df.at[row_index, "Pagamento carta"]
-            new_value = not current
-            df.at[row_index, "Pagamento carta"] = new_value
+        current = df.at[row_index, "Pagamento carta"]
+        new_value = not current
+        df.at[row_index, "Pagamento carta"] = new_value
 
-            # aggiorna UI
-            values = list(df.iloc[row_index])
-            values[col_index] = "☑" if new_value else "☐"
-            tree.item(row_id, values=values)
+        values = list(df.iloc[row_index])
+        values[col_index] = "☑" if new_value else "☐"
+        tree.item(row_id, values=values)
 
-        tree.bind("<Button-1>", on_tree_click)
+    tree.bind("<Button-1>", on_tree_click)
 
-    # dizionario per modifiche extra
-    modifiche_extra = {}
-
+    # ----------------------------------
+    # Modifica riga → EXTRA DA DB
+    # ----------------------------------
     def modifica_riga():
         selected = tree.selection()
         if not selected:
@@ -85,26 +97,138 @@ def show_extras_editor(df, on_done_callback):
 
         popup = tk.Toplevel(window)
         popup.title(f"Aggiungi extra – ID {riga['ID']}")
-        popup.geometry("300x200")
+        popup.geometry("420x480")
+        popup.resizable(False, False)
 
-        tk.Label(popup, text="Importo extra:").pack(pady=5)
-        extra_var = tk.DoubleVar(value=riga.get("Importo extra", 0))
-        tk.Entry(popup, textvariable=extra_var).pack()
+        # -----------------------------
+        # Recupero extra dal DB
+        # -----------------------------
+        extras_db = get_all_extras()  # [(id, nome, prezzo)]
+        extras_map = {nome: prezzo for _, nome, prezzo in extras_db}
 
-        tk.Label(popup, text="Descrizione extra:").pack(pady=5)
-        descr_var = tk.StringVar(value=riga.get("Descrizione extra", ""))
-        tk.Entry(popup, textvariable=descr_var).pack()
+        extra_selezionati = []
 
+        # -----------------------------
+        # UI selezione extra
+        # -----------------------------
+        tk.Label(popup, text="Extra:").pack(pady=(10, 0))
+
+        extra_var = tk.StringVar()
+        combo = ttk.Combobox(
+            popup,
+            textvariable=extra_var,
+            values=list(extras_map.keys()),
+            state="readonly"
+        )
+        combo.pack()
+
+        tk.Label(popup, text="Quantità:").pack(pady=(10, 0))
+        qty_var = tk.IntVar(value=1)
+        tk.Entry(popup, textvariable=qty_var, width=10).pack()
+
+        # -----------------------------
+        # Riepilogo extra aggiunti
+        # -----------------------------
+        tk.Label(popup, text="Riepilogo extra aggiunti").pack(pady=(20, 5))
+
+        riepilogo = ttk.Treeview(
+            popup,
+            columns=("extra", "qty", "totale"),
+            show="headings",
+            height=6
+        )
+        riepilogo.heading("extra", text="Extra")
+        riepilogo.heading("qty", text="Qty")
+        riepilogo.heading("totale", text="Totale €")
+
+        riepilogo.column("extra", width=180)
+        riepilogo.column("qty", width=50, anchor="center")
+        riepilogo.column("totale", width=80, anchor="e")
+
+        riepilogo.pack()
+
+        totale_var = tk.StringVar(value="Totale: € 0.00")
+        tk.Label(
+            popup,
+            textvariable=totale_var,
+            font=("Arial", 10, "bold")
+        ).pack(pady=(5, 10))
+
+        def aggiorna_riepilogo():
+            riepilogo.delete(*riepilogo.get_children())
+
+            totale = 0
+            for e in extra_selezionati:
+                subtot = e["prezzo"] * e["qty"]
+                totale += subtot
+
+                riepilogo.insert(
+                    "",
+                    "end",
+                    values=(e["nome"], e["qty"], f"{subtot:.2f}")
+                )
+
+            totale_var.set(f"Totale: € {totale:.2f}")
+
+        # -----------------------------
+        # Aggiunta extra
+        # -----------------------------
+        def aggiungi_extra():
+            nome = extra_var.get()
+            qty = qty_var.get()
+
+            if not nome or qty <= 0:
+                messagebox.showwarning(
+                    "Errore",
+                    "Seleziona un extra e una quantità valida"
+                )
+                return
+
+            extra_selezionati.append({
+                "nome": nome,
+                "prezzo": extras_map[nome],
+                "qty": qty
+            })
+
+            aggiorna_riepilogo()
+
+        tk.Button(
+            popup,
+            text="➕ Aggiungi extra",
+            command=aggiungi_extra
+        ).pack(pady=5)
+
+        # -----------------------------
+        # Conferma finale
+        # -----------------------------
         def conferma():
-            df.at[idx, "Importo extra"] = extra_var.get()
-            df.at[idx, "Descrizione extra"] = descr_var.get()
+            if extra_selezionati:
+                totale = sum(
+                    e["prezzo"] * e["qty"]
+                    for e in extra_selezionati
+                )
 
-            # aggiorna la riga visivamente
-            tree.item(selected[0], values=list(df.iloc[idx]))
+                descrizione = ", ".join(
+                    f"{e['nome']}({e['prezzo']}*{e['qty']})"
+                    for e in extra_selezionati
+                )
+
+                df.at[idx, "Importo extra"] = totale
+                df.at[idx, "Descrizione extra"] = descrizione
+
+                tree.item(selected[0], values=list(df.iloc[idx]))
+
             popup.destroy()
 
-        tk.Button(popup, text="Conferma", command=conferma).pack(pady=10)
-            
+        tk.Button(
+            popup,
+            text="✅ Conferma",
+            command=conferma
+        ).pack(pady=10)
+
+    # ----------------------------------
+    # Conferma modifiche
+    # ----------------------------------
     def conferma_modifiche():
         cleaner = DataCleaner(df)
         cleaned_df = cleaner.clean()
@@ -113,5 +237,4 @@ def show_extras_editor(df, on_done_callback):
 
     tk.Button(window, text="✏️ Modifica selezione", command=modifica_riga).pack(pady=10)
     tk.Button(window, text="✅ Procedi al riepilogo", command=conferma_modifiche).pack(pady=5)
-    # 👇 Nuovo bottone "Torna alla home"
     tk.Button(window, text="🏠 Torna indietro", command=window.destroy).pack(pady=5)
