@@ -4,8 +4,10 @@ Classe che gestisce la home
 
 import tkinter as tk
 from tkinter import Menu, messagebox
-from gui.components.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
 import sys
+
+from gui.components.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
+from gui.windows.settings_extras_window import show_extras_settings
 
 global_root = None
 
@@ -46,6 +48,20 @@ def show_home(on_elabora_callback, on_pdf_callback):
     file_menu = Menu(menubar, tearoff=0)
     file_menu.add_command(label="Esci", command=global_root.quit)
     menubar.add_cascade(label="File", menu=file_menu)
+    
+    # Settings
+    settings_menu = Menu(menubar, tearoff=0)
+    settings_menu.add_command(
+        label="Gestione Extra",
+        command=lambda: (
+            global_root.withdraw(),
+            show_extras_settings(
+                parent=global_root,
+                on_close_callback=restore_home
+            )
+        )
+    )
+    menubar.add_cascade(label="Settings", menu=settings_menu)
 
     # Guida
     guida_menu = Menu(menubar, tearoff=0)
