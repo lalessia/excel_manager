@@ -7,18 +7,14 @@ from tkinter import Menu, messagebox
 import sys
 
 from gui.components.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
-from gui.windows.settings_extras_window import show_extras_settings
+from gui.settings.settings_extras_window import show_extras_settings
 
 global_root = None
 
 def restore_home():
     global_root.destroy()
     sys.exit()
-    '''
-    alternativa: 
-    global global_root
-    global_root.deiconify()
-    '''
+
 def restore_home():
     global_root.deiconify()
     global_root.focus_force()

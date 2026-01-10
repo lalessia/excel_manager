@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from gui.windows.settings_extra_form_popup import show_extra_form
+from gui.settings.settings_extra_form_popup import show_extra_form
 from core.services.extras_repository import (
     get_all_extras,
     insert_extra,
