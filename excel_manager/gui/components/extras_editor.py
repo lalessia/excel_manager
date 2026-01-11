@@ -19,7 +19,7 @@ def show_extras_editor(df, on_done_callback):
     frame.pack(fill="both", expand=True)
 
     # ======================================================
-    # TREEVIEW PRINCIPALE CON SCROLLBAR
+    # TREEVIEW PRINCIPALE (PRENOTAZIONI)
     # ======================================================
     tree = ttk.Treeview(frame, show="headings")
     tree.grid(row=0, column=0, sticky="nsew")
@@ -51,7 +51,7 @@ def show_extras_editor(df, on_done_callback):
         tree.heading(col, text=col)
         tree.column(col, width=120, anchor="center")
 
-    # Popolamento treeview
+    # Popolamento treeview principale
     for _, row in df.iterrows():
         values = list(row)
         idx_pagamento = df.columns.get_loc("Pagamento carta")
@@ -59,7 +59,7 @@ def show_extras_editor(df, on_done_callback):
         tree.insert("", "end", values=values)
 
     # ======================================================
-    # TOGGLE CHECKBOX PAGAMENTO CARTA
+    # TOGGLE CHECKBOX "PAGAMENTO CARTA"
     # ======================================================
     def on_tree_click(event):
         region = tree.identify("region", event.x, event.y)
@@ -107,8 +107,41 @@ def show_extras_editor(df, on_done_callback):
         # --------------------------------------------------
         extras_db = get_all_extras()  # [(id, nome, prezzo)]
         extras_map = {nome: prezzo for _, nome, prezzo in extras_db}
+
         extra_disponibili = set(extras_map.keys())
         extra_selezionati = []
+
+        # --------------------------------------------------
+        # CARICAMENTO EXTRA PRECEDENTI (DA DESCRIZIONE)
+        # --------------------------------------------------
+        def carica_extra_precedenti():
+            descrizione = riga.get("Descrizione extra", "")
+            if not descrizione:
+                return
+
+            items = [x.strip() for x in descrizione.split(",")]
+
+            for item in items:
+                try:
+                    nome, resto = item.split("(")
+                    prezzo, qty = resto.replace(")", "").split("*")
+
+                    nome = nome.strip()
+                    prezzo = float(prezzo)
+                    qty = int(qty)
+
+                    extra_selezionati.append({
+                        "nome": nome,
+                        "prezzo": prezzo,
+                        "qty": qty
+                    })
+
+                    extra_disponibili.discard(nome)
+
+                except ValueError:
+                    continue
+
+        carica_extra_precedenti()
 
         # --------------------------------------------------
         # SELEZIONE EXTRA
@@ -146,7 +179,6 @@ def show_extras_editor(df, on_done_callback):
         riepilogo.column("extra", width=180)
         riepilogo.column("qty", width=50, anchor="center")
         riepilogo.column("totale", width=80, anchor="e")
-
         riepilogo.pack()
 
         totale_var = tk.StringVar(value="Totale: € 0.00")
@@ -182,12 +214,11 @@ def show_extras_editor(df, on_done_callback):
         # RIMOZIONE EXTRA (DOPPIO CLICK)
         # --------------------------------------------------
         def rimuovi_extra(event):
-            selected = riepilogo.selection()
-            if not selected:
+            selected_item = riepilogo.selection()
+            if not selected_item:
                 return
 
-            item = riepilogo.item(selected[0])
-            nome = item["values"][0]
+            nome = riepilogo.item(selected_item[0])["values"][0]
 
             for e in extra_selezionati:
                 if e["nome"] == nome:
@@ -195,11 +226,9 @@ def show_extras_editor(df, on_done_callback):
                     break
 
             extra_disponibili.add(nome)
-
             aggiorna_riepilogo()
             aggiorna_combo_extra()
 
-        # 👉 BIND CORRETTO
         riepilogo.bind("<Double-1>", rimuovi_extra)
 
         # --------------------------------------------------
@@ -241,6 +270,9 @@ def show_extras_editor(df, on_done_callback):
                 tree.item(selected[0], values=list(df.iloc[idx]))
 
             popup.destroy()
+
+        aggiorna_riepilogo()
+        aggiorna_combo_extra()
 
         tk.Button(popup, text="✅ Conferma", command=conferma).pack(pady=10)
 
