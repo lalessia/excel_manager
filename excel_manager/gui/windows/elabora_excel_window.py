@@ -1,12 +1,15 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from core.processing.data_cleaner import DataCleaner
+import os
+import pandas as pd
+from tkinter import messagebox
+
 from gui.components.data_table import show_dataframe_table
-from core.io.excel_reader import load_xlsx, extract_clean_data
-#from core.data_extractor import estrai_colonne_rilevanti
 from gui.components.extras_editor import show_extras_editor
 from gui.windows.home_window import restore_home
-import os
+from core.processing.data_cleaner import DataCleaner
+from core.io.excel_reader import load_xlsx, extract_clean_data
+
 
 def show_elabora_excel_window():
     window = tk.Toplevel()
@@ -33,6 +36,34 @@ def show_elabora_excel_window():
         else:
             path_label.config(text="Nessun file selezionato", fg="red")
 
+    def check_mesi_multipli(df, colonna="Check in"):
+        """
+        Ritorna True se l'utente decide di proseguire,
+        False se decide di interrompere.
+        """
+        try:
+            # parsing date (es. '30/12/2025')
+            date_parsed = pd.to_datetime(df[colonna], format="%d/%m/%Y", errors="coerce")
+
+            # estrai (anno, mese)
+            mesi_distinti = date_parsed.dt.to_period("M").dropna().unique()
+
+            if len(mesi_distinti) > 1:
+                return messagebox.askyesno(
+                    "Attenzione",
+                    "La colonna 'Check in' contiene date riferite a mesi differenti.\n"
+                    "Vuoi procedere comunque?"
+                )
+
+            return True
+
+        except Exception as e:
+            messagebox.showerror(
+                "Errore",
+                f"Errore nel controllo delle date:\n{e}"
+            )
+            return False
+
     def avvia_elaborazione():
         try:
             file_path = selected_path_var.get()
@@ -48,6 +79,11 @@ def show_elabora_excel_window():
             cleaner = DataCleaner(df_ridotto)
             df_preparato = cleaner.clean()
 
+            # 👉 controllo mesi Check in
+            prosegui = check_mesi_multipli(df_preparato, colonna="Check in")
+            if not prosegui:
+                return
+
             show_extras_editor(df_preparato, on_done_callback=mostra_riepilogo)
 
         except Exception as e:
@@ -55,14 +91,13 @@ def show_elabora_excel_window():
                 "Errore",
                 f"Errore durante l'elaborazione:\n{e}"
         )
-            
+
     def mostra_riepilogo(df_finale):
         # Qui mostriamo il dataframe finale
         input_file = selected_path_var.get()
         base_folder = os.path.dirname(input_file)
         show_dataframe_table(df_finale, base_folder)
-        #show_dataframe_table(df_finale, selected_path_var.get())
-
+        
     tk.Button(window, text="📄 Seleziona file Excel", command=seleziona_file, width=25).pack(pady=10)
 
     path_label = tk.Label(window, text="Nessun file selezionato", font=("Helvetica", 10), fg="red")
