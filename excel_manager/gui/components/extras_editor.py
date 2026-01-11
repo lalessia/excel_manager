@@ -7,6 +7,9 @@ from core.services.extras_repository import get_all_extras
 
 
 def show_extras_editor(df, on_done_callback):
+    # ======================================================
+    # FINESTRA PRINCIPALE
+    # ======================================================
     window = tk.Toplevel()
     window.title("Aggiungi Extra per Prenotazione")
     window.geometry("1000x400")
@@ -15,9 +18,9 @@ def show_extras_editor(df, on_done_callback):
     frame = tk.Frame(window)
     frame.pack(fill="both", expand=True)
 
-    # ----------------------------------
-    # Treeview principale con scrollbar
-    # ----------------------------------
+    # ======================================================
+    # TREEVIEW PRINCIPALE CON SCROLLBAR
+    # ======================================================
     tree = ttk.Treeview(frame, show="headings")
     tree.grid(row=0, column=0, sticky="nsew")
 
@@ -35,9 +38,9 @@ def show_extras_editor(df, on_done_callback):
     frame.grid_rowconfigure(0, weight=1)
     frame.grid_columnconfigure(0, weight=1)
 
-    # ----------------------------------
-    # Colonna pagamento carta
-    # ----------------------------------
+    # ======================================================
+    # COLONNA "PAGAMENTO CARTA"
+    # ======================================================
     if "Pagamento carta" not in df.columns:
         df["Pagamento carta"] = False
 
@@ -48,15 +51,16 @@ def show_extras_editor(df, on_done_callback):
         tree.heading(col, text=col)
         tree.column(col, width=120, anchor="center")
 
+    # Popolamento treeview
     for _, row in df.iterrows():
         values = list(row)
         idx_pagamento = df.columns.get_loc("Pagamento carta")
         values[idx_pagamento] = "☑" if row["Pagamento carta"] else "☐"
         tree.insert("", "end", values=values)
 
-    # ----------------------------------
-    # Toggle checkbox pagamento carta
-    # ----------------------------------
+    # ======================================================
+    # TOGGLE CHECKBOX PAGAMENTO CARTA
+    # ======================================================
     def on_tree_click(event):
         region = tree.identify("region", event.x, event.y)
         if region != "cell":
@@ -72,9 +76,7 @@ def show_extras_editor(df, on_done_callback):
             return
 
         row_index = tree.index(row_id)
-
-        current = df.at[row_index, "Pagamento carta"]
-        new_value = not current
+        new_value = not df.at[row_index, "Pagamento carta"]
         df.at[row_index, "Pagamento carta"] = new_value
 
         values = list(df.iloc[row_index])
@@ -83,9 +85,9 @@ def show_extras_editor(df, on_done_callback):
 
     tree.bind("<Button-1>", on_tree_click)
 
-    # ----------------------------------
-    # Modifica riga → EXTRA DA DB
-    # ----------------------------------
+    # ======================================================
+    # MODIFICA RIGA → POPUP EXTRA
+    # ======================================================
     def modifica_riga():
         selected = tree.selection()
         if not selected:
@@ -100,24 +102,24 @@ def show_extras_editor(df, on_done_callback):
         popup.geometry("420x480")
         popup.resizable(False, False)
 
-        # -----------------------------
-        # Recupero extra dal DB
-        # -----------------------------
+        # --------------------------------------------------
+        # RECUPERO EXTRA DAL DB
+        # --------------------------------------------------
         extras_db = get_all_extras()  # [(id, nome, prezzo)]
         extras_map = {nome: prezzo for _, nome, prezzo in extras_db}
-
+        extra_disponibili = set(extras_map.keys())
         extra_selezionati = []
 
-        # -----------------------------
-        # UI selezione extra
-        # -----------------------------
+        # --------------------------------------------------
+        # SELEZIONE EXTRA
+        # --------------------------------------------------
         tk.Label(popup, text="Extra:").pack(pady=(10, 0))
 
         extra_var = tk.StringVar()
         combo = ttk.Combobox(
             popup,
             textvariable=extra_var,
-            values=list(extras_map.keys()),
+            values=sorted(extra_disponibili),
             state="readonly"
         )
         combo.pack()
@@ -126,9 +128,9 @@ def show_extras_editor(df, on_done_callback):
         qty_var = tk.IntVar(value=1)
         tk.Entry(popup, textvariable=qty_var, width=10).pack()
 
-        # -----------------------------
-        # Riepilogo extra aggiunti
-        # -----------------------------
+        # --------------------------------------------------
+        # RIEPILOGO EXTRA AGGIUNTI
+        # --------------------------------------------------
         tk.Label(popup, text="Riepilogo extra aggiunti").pack(pady=(20, 5))
 
         riepilogo = ttk.Treeview(
@@ -154,14 +156,20 @@ def show_extras_editor(df, on_done_callback):
             font=("Arial", 10, "bold")
         ).pack(pady=(5, 10))
 
+        # --------------------------------------------------
+        # FUNZIONI DI SUPPORTO UI
+        # --------------------------------------------------
+        def aggiorna_combo_extra():
+            combo["values"] = sorted(extra_disponibili)
+            extra_var.set("")
+
         def aggiorna_riepilogo():
             riepilogo.delete(*riepilogo.get_children())
-
             totale = 0
+
             for e in extra_selezionati:
                 subtot = e["prezzo"] * e["qty"]
                 totale += subtot
-
                 riepilogo.insert(
                     "",
                     "end",
@@ -170,18 +178,39 @@ def show_extras_editor(df, on_done_callback):
 
             totale_var.set(f"Totale: € {totale:.2f}")
 
-        # -----------------------------
-        # Aggiunta extra
-        # -----------------------------
+        # --------------------------------------------------
+        # RIMOZIONE EXTRA (DOPPIO CLICK)
+        # --------------------------------------------------
+        def rimuovi_extra(event):
+            selected = riepilogo.selection()
+            if not selected:
+                return
+
+            item = riepilogo.item(selected[0])
+            nome = item["values"][0]
+
+            for e in extra_selezionati:
+                if e["nome"] == nome:
+                    extra_selezionati.remove(e)
+                    break
+
+            extra_disponibili.add(nome)
+
+            aggiorna_riepilogo()
+            aggiorna_combo_extra()
+
+        # 👉 BIND CORRETTO
+        riepilogo.bind("<Double-1>", rimuovi_extra)
+
+        # --------------------------------------------------
+        # AGGIUNTA EXTRA
+        # --------------------------------------------------
         def aggiungi_extra():
             nome = extra_var.get()
             qty = qty_var.get()
 
             if not nome or qty <= 0:
-                messagebox.showwarning(
-                    "Errore",
-                    "Seleziona un extra e una quantità valida"
-                )
+                messagebox.showwarning("Errore", "Seleziona un extra e una quantità valida")
                 return
 
             extra_selezionati.append({
@@ -190,24 +219,18 @@ def show_extras_editor(df, on_done_callback):
                 "qty": qty
             })
 
+            extra_disponibili.remove(nome)
             aggiorna_riepilogo()
+            aggiorna_combo_extra()
 
-        tk.Button(
-            popup,
-            text="➕ Aggiungi extra",
-            command=aggiungi_extra
-        ).pack(pady=5)
+        tk.Button(popup, text="➕ Aggiungi extra", command=aggiungi_extra).pack(pady=5)
 
-        # -----------------------------
-        # Conferma finale
-        # -----------------------------
+        # --------------------------------------------------
+        # CONFERMA FINALE
+        # --------------------------------------------------
         def conferma():
             if extra_selezionati:
-                totale = sum(
-                    e["prezzo"] * e["qty"]
-                    for e in extra_selezionati
-                )
-
+                totale = sum(e["prezzo"] * e["qty"] for e in extra_selezionati)
                 descrizione = ", ".join(
                     f"{e['nome']}({e['prezzo']}*{e['qty']})"
                     for e in extra_selezionati
@@ -215,20 +238,15 @@ def show_extras_editor(df, on_done_callback):
 
                 df.at[idx, "Importo extra"] = totale
                 df.at[idx, "Descrizione extra"] = descrizione
-
                 tree.item(selected[0], values=list(df.iloc[idx]))
 
             popup.destroy()
 
-        tk.Button(
-            popup,
-            text="✅ Conferma",
-            command=conferma
-        ).pack(pady=10)
+        tk.Button(popup, text="✅ Conferma", command=conferma).pack(pady=10)
 
-    # ----------------------------------
-    # Conferma modifiche
-    # ----------------------------------
+    # ======================================================
+    # CONFERMA MODIFICHE GLOBALI
+    # ======================================================
     def conferma_modifiche():
         cleaner = DataCleaner(df)
         cleaned_df = cleaner.clean()

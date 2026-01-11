@@ -89,6 +89,14 @@ def show_extras_settings(parent=None, on_close_callback=None):
     def nuovo_extra():
         def on_save(data):
             extra_id = insert_extra(data["nome"], data["prezzo"])
+
+            if extra_id is None:
+                messagebox.showerror(
+                    "Extra già esistente",
+                    f"L'extra '{data['nome']}' è già presente.\nScegli un nome diverso."
+                )
+                return
+
             tree.insert(
                 "",
                 "end",
@@ -107,17 +115,21 @@ def show_extras_settings(parent=None, on_close_callback=None):
         item_id = selected[0]
         extra_id, nome, prezzo = tree.item(item_id, "values")
 
-        if extra_id is None:
-            messagebox.showerror("Errore", "ID extra non valido.")
-            return
-
         def on_save(data):
-            success = update_extra(
+            result = update_extra(
                 int(extra_id),
                 data["nome"],
                 data["prezzo"]
             )
-            if success:
+
+            if result is None:
+                messagebox.showerror(
+                    "Nome duplicato",
+                    f"Esiste già un extra chiamato '{data['nome']}'."
+                )
+                return
+
+            if result:
                 tree.item(
                     item_id,
                     values=(extra_id, data["nome"], f"{data['prezzo']:.2f}")

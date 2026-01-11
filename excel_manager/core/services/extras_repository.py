@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import sys
+from typing import Optional
 
 # --------------------------------------------------
 # Percorso DB compatibile con PyInstaller
@@ -71,42 +72,52 @@ def get_all_extras():
     return rows
 
 
-def insert_extra(nome: str, prezzo: float) -> int:
+def insert_extra(nome: str, prezzo: float) -> int | None:
     """
     Inserisce un extra e ritorna l'ID generato.
+    Se il nome esiste già, ritorna None.
     """
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO extras (nome, prezzo) VALUES (?, ?)",
-        (nome, prezzo)
-    )
+    try:
+        cursor.execute(
+            "INSERT INTO extras (nome, prezzo) VALUES (?, ?)",
+            (nome, prezzo)
+        )
+        conn.commit()
+        return cursor.lastrowid
 
-    conn.commit()
-    extra_id = cursor.lastrowid
-    conn.close()
+    except sqlite3.IntegrityError:
+        return None
 
-    return extra_id
+    finally:
+        conn.close()
 
-
-def update_extra(extra_id: int, nome: str, prezzo: float) -> bool:
+def update_extra(extra_id: int, nome: str, prezzo: float) -> Optional[bool]:
     """
     Aggiorna un extra esistente.
+    Ritorna:
+    - True  → aggiornato
+    - False → ID non trovato
+    - None  → nome duplicato
     """
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "UPDATE extras SET nome = ?, prezzo = ? WHERE id = ?",
-        (nome, prezzo, extra_id)
-    )
+    try:
+        cursor.execute(
+            "UPDATE extras SET nome = ?, prezzo = ? WHERE id = ?",
+            (nome, prezzo, extra_id)
+        )
+        conn.commit()
+        return cursor.rowcount > 0
 
-    conn.commit()
-    success = cursor.rowcount > 0
-    conn.close()
+    except sqlite3.IntegrityError:
+        return None
 
-    return success
+    finally:
+        conn.close()
 
 
 def delete_extra(extra_id: int) -> bool:
