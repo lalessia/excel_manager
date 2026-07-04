@@ -36,8 +36,6 @@ def show_dataframe_table(df: pd.DataFrame, save_folder: str, parent=None):
     
     def torna_alla_modifica():
         table_window.destroy()
-        if on_edit_callback:
-            on_edit_callback(df)
             
     table_window = tk.Tk()
     table_window.title("Riepilogo Dati - Resoconto")

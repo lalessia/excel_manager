@@ -79,7 +79,7 @@ def show_elabora_excel_window():
             cleaner = DataCleaner(df_ridotto)
             df_preparato = cleaner.clean()
 
-            # 👉 controllo mesi Check in
+            # 👉 controllo se i Check in coprono più mesi
             prosegui = check_mesi_multipli(df_preparato, colonna="Check in")
             if not prosegui:
                 return

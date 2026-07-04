@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import pandas as pd
+from zipfile import Path
 
 from core.processing.data_cleaner import DataCleaner
 from core.services.extras_repository import get_all_extras
@@ -112,7 +112,7 @@ def show_extras_editor(df, on_done_callback):
         extra_selezionati = []
 
         # --------------------------------------------------
-        # CARICAMENTO EXTRA PRECEDENTI (DA DESCRIZIONE)
+        # CARICAMENTO EXTRA PRECEDENTENTEMENTE COMPILATI
         # --------------------------------------------------
         def carica_extra_precedenti():
             descrizione = riga.get("Descrizione extra", "")
@@ -231,6 +231,8 @@ def show_extras_editor(df, on_done_callback):
 
         riepilogo.bind("<Double-1>", rimuovi_extra)
 
+        tk.Label(popup, text="Per rimuovere un extra, fai doppio click su di esso").pack(pady=(20, 5))
+
         # --------------------------------------------------
         # AGGIUNTA EXTRA
         # --------------------------------------------------
@@ -280,11 +282,24 @@ def show_extras_editor(df, on_done_callback):
     # CONFERMA MODIFICHE GLOBALI
     # ======================================================
     def conferma_modifiche():
+        # 
+        '''
+        # VECCHIO CODICE: LASCIATO IN DEBUG
+        # DA CAPIRE QUANDO VIENE CHIAMATA LA DataCleaner() NEL PROGETTO
+
+
         cleaner = DataCleaner(df)
         cleaned_df = cleaner.clean()
-        on_done_callback(cleaned_df)
+
+        path = Path("logs") / "debug_cleaned_df.csv"
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        cleaned_df.to_csv(path, index=False)
+        '''
+
+        on_done_callback(df)
         window.destroy()
 
-    tk.Button(window, text="✏️ Modifica selezione", command=modifica_riga).pack(pady=10)
-    tk.Button(window, text="✅ Procedi al riepilogo", command=conferma_modifiche).pack(pady=5)
+    tk.Button(window, text="✏️ Aggiungi Extra", command=modifica_riga).pack(pady=10)
+    tk.Button(window, text="✅ Salva Modifiche", command=conferma_modifiche).pack(pady=5)
     tk.Button(window, text="🏠 Torna indietro", command=window.destroy).pack(pady=5)
