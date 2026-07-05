@@ -26,7 +26,7 @@ build/
 dist/
 *.spec
 
-main_folder/
+documenti/
 
 # venv/
 venv/

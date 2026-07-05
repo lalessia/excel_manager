@@ -1,3 +1,7 @@
+# eseguibile
+
+pyinstaller --onefile --console --name excel_manager main.py ` --add-data "fonts;fonts" ` --add-data "img;img" ` --add-data "core/db;core/db"
+
 # excel_manager
 
 Ti faccio di nuovo un riepilogo di quello che vorrei io.

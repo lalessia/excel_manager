@@ -4,19 +4,21 @@ Classe che gestisce la home
 
 import tkinter as tk
 from tkinter import Menu, messagebox
-from gui.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
 import sys
+
+from gui.components.helper_popup import show_guide_export, show_guide_pdf  # Assicurati che il path sia corretto
+from gui.settings.settings_extras_window import show_extras_settings
 
 global_root = None
 
 def restore_home():
     global_root.destroy()
     sys.exit()
-    '''
-    alternativa: 
-    global global_root
+
+def restore_home():
     global_root.deiconify()
-    '''
+    global_root.focus_force()
+
     
 def on_closing():
     """
@@ -42,6 +44,20 @@ def show_home(on_elabora_callback, on_pdf_callback):
     file_menu = Menu(menubar, tearoff=0)
     file_menu.add_command(label="Esci", command=global_root.quit)
     menubar.add_cascade(label="File", menu=file_menu)
+    
+    # Settings
+    settings_menu = Menu(menubar, tearoff=0)
+    settings_menu.add_command(
+        label="Gestione Extra",
+        command=lambda: (
+            global_root.withdraw(),
+            show_extras_settings(
+                parent=global_root,
+                on_close_callback=restore_home
+            )
+        )
+    )
+    menubar.add_cascade(label="Settings", menu=settings_menu)
 
     # Guida
     guida_menu = Menu(menubar, tearoff=0)
@@ -71,7 +87,7 @@ def show_home(on_elabora_callback, on_pdf_callback):
     # -------- Bottone Elaborazione --------
     elabora_button = tk.Button(
         global_root,
-        text="➤ Elaborazione file Excel",
+        text="Elaborazione file Excel",
         font=("Helvetica", 12),
         width=30,
         height=2,
